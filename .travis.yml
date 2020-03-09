@@ -32,7 +32,7 @@ jobs:
     - name: "AdminUI Modules tests"
       php: 7.3
       env:
-        -BEHAT_OPTS="--mode=standard --profile=adminui --suite=adminuimodules"
+        -BEHAT_OPTS="--profile=adminui --suite=adminuimodules"
 
 git:
   depth: 30
