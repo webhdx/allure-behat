@@ -20,6 +20,7 @@
 
 namespace Allure\Behat;
 
+use Allure\Behat\Extension\ScreenshotTaker;
 use Behat\Testwork\Exception\ServiceContainer\ExceptionExtension;
 use Behat\Testwork\ServiceContainer\Extension as ExtensionInterface;
 use Behat\Testwork\ServiceContainer\ExtensionManager;
@@ -31,6 +32,7 @@ use Symfony\Component\DependencyInjection\Reference;
 
 class AllureFormatterExtension implements ExtensionInterface
 {
+  private const SCREENSHOT_TAKER_SERVICE_ID = 'bex.screenshot_extension.screenshot_taker';
 
   /**
    * You can modify the container here before it is dumped to PHP code.
@@ -89,6 +91,14 @@ class AllureFormatterExtension implements ExtensionInterface
    */
   public function load(ContainerBuilder $container, array $config)
   {
+      $this->loadFormatter($container, $config);
+      if ($container->has(self::SCREENSHOT_TAKER_SERVICE_ID)) {
+        $this->loadScreenshotExtention($container);
+      }
+  }
+
+  private function loadFormatter(ContainerBuilder $container, array $config): void
+  {
     $definition = new Definition("Allure\\Behat\\Formatter\\AllureFormatter");
     $definition->addArgument($config['name']);
     $definition->addArgument($config['issue_tag_prefix']);
@@ -102,4 +112,10 @@ class AllureFormatterExtension implements ExtensionInterface
       ->addTag("output.formatter");
   }
 
+  private function loadScreenshotExtention(ContainerBuilder $container)
+  {
+      $container->register(ScreenshotTaker::class)
+        ->setDecoratedService(self::SCREENSHOT_TAKER_SERVICE_ID, self::SCREENSHOT_TAKER_SERVICE_ID . '.inner')
+        ->addArgument(new Reference(self::SCREENSHOT_TAKER_SERVICE_ID . '.inner'));
+  }
 }
