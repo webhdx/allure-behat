@@ -19,12 +19,15 @@
  */
 namespace Allure\Behat;
 
+use Allure\Behat\Attachment\TestAttachmentProvider;
+use Behat\Symfony2Extension\ServiceContainer\Symfony2Extension;
 use Behat\Testwork\Exception\ServiceContainer\ExceptionExtension;
 use Behat\Testwork\ServiceContainer\Extension as ExtensionInterface;
 use Behat\Testwork\ServiceContainer\ExtensionManager;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Parameter;
 use Symfony\Component\DependencyInjection\Reference;
 
 class AllureFormatterExtension implements ExtensionInterface
@@ -95,5 +98,16 @@ class AllureFormatterExtension implements ExtensionInterface
         $definition->addArgument($presenter);
         $container->setDefinition('allure.formatter', $definition)
       ->addTag('output.formatter');
+
+        $this->loadTestAttachmentProvider($container);
+    }
+
+    private function loadTestAttachmentProvider(ContainerBuilder $containerBuilder)
+    {
+      $definition = new Definition(TestAttachmentProvider::class);
+      $definition->addArgument(new Reference('mink'));
+      $definition->addArgument(new Reference(Symfony2Extension::KERNEL_ID));
+      $definition->addTag('event_dispatcher.subscriber');
+      $containerBuilder->setDefinition(TestAttachmentProvider::class, $definition);
     }
 }
